@@ -1,0 +1,5 @@
+date;product;epicName;profile;teamMember
+2023-05-01;productA;Epic1;Dev;1stPerson
+2023-05-02;productA;Epic1;Dev;1stPerson
+2023-05-01;productA;Epic2;Dev;2ndPerson
+2023-05-02;productA;Epic2;Dev;2ndPerson

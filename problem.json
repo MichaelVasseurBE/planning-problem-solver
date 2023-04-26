@@ -1,0 +1,89 @@
+{
+    "teamMembers": [{
+        "name": "Edouard Carletti",
+        "profile": "FS",
+        "product": "nitro.presse"
+    }, {
+        "name": "Cedric Cazin",
+        "profile": "FS.Expert",
+        "product": "*"
+    }, {
+        "name": "Michael Vasseur",
+        "profile": "FS.Expert",
+        "product": "*"
+    }, {
+        "name": "Sebastien Bernard",
+        "profile": "FS",
+        "product": "nitro.presse"
+    }, {
+        "name": "Jerome Masloswski",
+        "profile": "DE.Expert",
+        "product": "*"
+    }, {
+        "name": "Ruth Badibengi",
+        "profile": "DE",
+        "product": "becredit"
+    }, {
+        "name": "Anthonio Rabemanantsoa",
+        "profile": "DE",
+        "product": "nitro.livre"
+    }, {
+        "name": "Marin Brunel",
+        "profile": "DE",
+        "product": "nitro.livre"
+    }, {
+        "name": "Alexandru Ginsca",
+        "profile": "DS.Expert",
+        "product": "*"
+    }, {
+        "name": "Maha Masaabi",
+        "profile": "DS",
+        "product": "nitro.livre"
+    }, {
+        "name": "Segolene Denjoy",
+        "profile": "DS",
+        "product": "nitro.presse"
+    }, {
+        "name": "Serkan Sahin",
+        "profile": "FS",
+        "product": "nitro.livre"
+    }, {
+        "name": "Laure Decaudin",
+        "profile": "DS",
+        "product": "nitro.presse"
+    }, {
+        "name": "Julien Morisse",
+        "profile": "FS",
+        "product": "nitro.presse"
+    }, {
+        "name": "Marinka Gencheva",
+        "profile": "QA",
+        "product": "*"
+    }],
+    "workDayRange": {
+        "begin": "2023-05-01",
+        "end" : "2023-06-30"
+    },
+    "epics": [
+        {
+            "name": "DevEnv",
+            "product": "nitro.presse",
+            "workloads": {
+                "FS.Expert": 10
+            }
+        }, {
+            "name": "CI & Infra",
+            "product": "nitro.presse",
+            "workloads": {
+                "FS.Expert": 10
+            }
+        }, {
+            "name": "Model Automation",
+            "product": "nitro.presse",
+            "workloads": {
+                "DS": 20,
+                "FS.Expert": 5
+            }
+        }
+    ]   
+}
