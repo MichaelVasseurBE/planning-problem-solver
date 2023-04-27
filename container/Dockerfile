@@ -4,6 +4,10 @@ RUN apt update
 RUN apt install python3-pip -y
 RUN pip install optapy
 
-ADD planning_problem_solver.py .
+RUN groupadd --gid 1000 optapy \
+  && useradd --uid 1000 --gid optapy --shell /bin/bash --create-home optapy
+USER optapy
 
-ENTRYPOINT ["python3", "planning_problem_solver.py"]
+WORKDIR /home/optapy
+
+ENTRYPOINT ["python3"]

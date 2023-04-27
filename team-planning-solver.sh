@@ -1,0 +1,1 @@
+podman run -v ./team-planning-problems:/home/optapy/team-planning-problems:ro -v ./solvers:/home/optapy/solvers:ro planning-problem-solver /home/optapy/solvers/team_planning_solver.py /home/optapy/team-planning-problems/$1

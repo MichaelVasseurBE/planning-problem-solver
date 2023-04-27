@@ -1,0 +1,78 @@
+{
+    "title": "Sample Planning",
+    "teamMembers": [{
+        "name": "1stPerson",
+        "profile": "Dev",
+        "product": "ProductA",
+        "daysOff": [
+            "2023-05-03",
+            "2023-05-10",
+            "2023-05-17",
+            "2023-05-24"
+        ]
+    }, {
+        "name": "2ndPerson",
+        "profile": "Dev",
+        "product": "ProductB",
+        "daysOff": [
+            "2023-05-05",
+            "2023-05-12",
+            "2023-05-19",
+            "2023-05-26"
+        ]
+    }, {
+        "name": "3rdPerson",
+        "profile": "QA",
+        "product": "*",
+        "daysOff": []
+    }],
+    "workDayRange": {
+        "begin": "2023-05-01",
+        "end" : "2023-06-30",
+        "teamDaysOff": [
+            "2023-01-01",
+            "2023-04-10",
+            "2023-05-01",
+            "2023-05-08",
+            "2023-05-18",
+            "2023-05-19",
+            "2023-05-29",
+            "2023-07-14",
+            "2023-08-15",
+            "2023-11-01",
+            "2023-11-11",
+            "2023-12-25"
+        ]
+    },
+    "epics": [
+        {
+            "name": "Epic1",
+            "product": "ProductA",
+            "workloads": {
+                "Dev": 4,
+                "QA": 4
+            }
+        },  {
+            "name": "Epic2",
+            "product": "ProductA",
+            "workloads": {
+                "Dev": 4,
+                "QA": 4
+            }
+        },  {
+            "name": "Epic3",
+            "product": "ProductB",
+            "workloads": {
+                "Dev": 4,
+                "QA": 4
+            }
+        },  {
+            "name": "Epic4",
+            "product": "ProductB",
+            "workloads": {
+                "Dev": 4,
+                "QA": 4
+            }
+        }
+    ]   
+}
