@@ -68,6 +68,8 @@
             }
         },  {
             "name": "Epic4",
+            "deadLine": "2023-05-15",
+            "priority": 0,
             "product": "ProductB",
             "workloads": {
                 "Dev": 4,

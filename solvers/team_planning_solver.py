@@ -6,6 +6,7 @@ from optapy import problem_fact, \
                     planning_id, \
                     planning_entity, \
                     planning_variable, \
+                    inverse_relation_shadow_variable, \
                     constraint_provider, \
                     planning_solution, \
                     problem_fact_collection_property, \
@@ -18,7 +19,7 @@ from optapy import problem_fact, \
 from optapy.types import Joiners, HardSoftScore, SolverConfig, Duration
 
 
-@problem_fact
+@planning_entity
 class WorkDay:
     def __init__(
             self,
@@ -26,6 +27,7 @@ class WorkDay:
             date):
         self.id = id
         self.date = date
+        self.planned_items = []
         
     @planning_id
     def get_id(self):
@@ -75,10 +77,14 @@ class PlanningItem:
             self,
             id,
             epic,
+            priority,
+            dead_line,
             product,
             profile):
         self.id = id
         self.epic = epic
+        self.priority = priority
+        self.dead_line = dead_line
         self.product = product
         self.profile = profile
         self.work_day = None
@@ -113,6 +119,9 @@ class PlanningItem:
     
     def bad_day_assignment(self):
         return self.work_day.date.isoformat() in self.team_member.daysoff
+    
+    def dead_line_fail(self):
+        return False if self.dead_line is None else self.work_day.date.toordinal() > date.fromisoformat(self.dead_line).toordinal()
 
 
 @planning_solution
@@ -163,9 +172,10 @@ class TeamPlanning:
             if item.epic not in product_item:
                 product_item[item.epic] = {}
             epic_item = product_item[item.epic]
-            if 'beginDate' not in epic_item:
-                epic_item['beginDate'] = item.work_day.date.isoformat()
-            epic_item['endDate'] = item.work_day.date.isoformat()
+            if 'beginDate' not in epic_item or item.work_day.date.toordinal() < epic_item['beginDate'].toordinal():
+                epic_item['beginDate'] = item.work_day.date
+            if 'endDate' not in epic_item or item.work_day.date.toordinal() > epic_item['endDate'].toordinal():
+                epic_item['endDate'] = item.work_day.date
 
         return consolidated_planning
     
@@ -179,7 +189,7 @@ class TeamPlanning:
         for product in planning.keys():
             print(f"\tsection {product}")
             for epic in planning[product].keys():
-                print(f"\t{epic}\t:{planning[product][epic]['beginDate']}, {planning[product][epic]['endDate']}")    
+                print(f"\t{epic}\t:{planning[product][epic]['beginDate'].isoformat()}, {planning[product][epic]['endDate'].isoformat()}")    
     
     def consolidate_planning_per_member(self):
         sorted_items = sorted(self.planning_items, key=lambda item: (item.product, item.epic))
@@ -195,9 +205,10 @@ class TeamPlanning:
             if workload not in member_item:
                 member_item[workload] = {}
             workload_item = member_item[workload]
-            if 'beginDate' not in workload_item:
-                workload_item['beginDate'] = item.work_day.date.isoformat()
-            workload_item['endDate'] = item.work_day.date.isoformat()
+            if 'beginDate' not in workload_item or item.work_day.date.toordinal() < workload_item['beginDate'].toordinal():
+                workload_item['beginDate'] = item.work_day.date
+            if 'endDate' not in workload_item or item.work_day.date.toordinal() > workload_item['endDate'].toordinal():
+                workload_item['endDate'] = item.work_day.date
 
         return consolidated_planning
         
@@ -211,7 +222,7 @@ class TeamPlanning:
         for member in planning.keys():
             print(f"\tsection {member}")
             for workload in planning[member].keys():
-                print(f"\t{workload}\t:{planning[member][workload]['beginDate']}, {planning[member][workload]['endDate']}")
+                print(f"\t{workload}\t:{planning[member][workload]['beginDate'].isoformat()}, {planning[member][workload]['endDate'].isoformat()}")
 
 def penalize_all(constraint_factory):
     return constraint_factory \
@@ -219,9 +230,10 @@ def penalize_all(constraint_factory):
         .penalize("Penalize ALL !", HardSoftScore.ONE_HARD)
 
 def team_member_capacity_per_day(constraint_factory):
-    return constraint_factory.for_each(PlanningItem) \
+    return constraint_factory \
+        .for_each(PlanningItem) \
         .join(PlanningItem, \
-            Joiners.equal(lambda item: item.work_day),
+            Joiners.equal(lambda item: item.work_day), \
             Joiners.equal(lambda item: item.team_member), \
             Joiners.less_than(lambda item: item.id) \
         ) \
@@ -245,6 +257,34 @@ def team_member_has_days_off(constraint_factory):
         .filter(lambda item: item.bad_day_assignment()) \
         .penalize("Team member issue: Day Off", HardSoftScore.ONE_HARD)
 
+def qa_cannot_be(constraint_factory):
+    return constraint_factory \
+        .for_each(PlanningItem) \
+        .filter(lambda item: item.bad_day_assignment()) \
+        .penalize("Team member issue: Day Off", HardSoftScore.ONE_HARD)
+
+
+def enforce_dead_lines(constraint_factory):
+    return constraint_factory \
+        .for_each(PlanningItem) \
+        .filter(lambda item: item.dead_line_fail()) \
+        .penalize("Dead line fail", HardSoftScore.ONE_HARD)
+
+def focused_team_member(constraint_factory):
+    return constraint_factory \
+        .for_each(PlanningItem) \
+        .join(PlanningItem, \
+            Joiners.equal(lambda item: item.team_member), \
+            Joiners.less_than(lambda item: item.id) \
+        ) \
+        .filter(lambda item1, item2: item1.epic != item2.epic) \
+        .penalize("Team member issue: Focus", HardSoftScore.ONE_SOFT)
+
+def enforce_epic_priority(constraint_factory):
+    return constraint_factory \
+        .for_each(PlanningItem) \
+        .penalize("Epic priority", HardSoftScore.ONE_SOFT, lambda item: item.priority)
+
 @constraint_provider
 def planning_constraints( constraint_factory):
     result =  [
@@ -253,6 +293,10 @@ def planning_constraints( constraint_factory):
         team_member_assigned_to_a_product(constraint_factory),
         team_member_has_a_profile(constraint_factory),
         team_member_has_days_off(constraint_factory),
+        # enforce_dead_lines(constraint_factory),
+        # focused_team_member(constraint_factory),env
+        # enforce_epic_priority(constraint_factory)
+
         # Soft constraints
     ]
     return result
@@ -302,6 +346,8 @@ class PlanningProblem:
                 team_member_def['product'],
                 team_member_def['daysOff']))
             team_member_id = team_member_id + 1
+
+        # sorting epics by priorities
             
         # Generate planning items
         item_id = 0
@@ -312,10 +358,12 @@ class PlanningProblem:
                     self.planning_items.append(PlanningItem(
                         item_id,
                         epic_def['name'],
+                        epic_def.get('priority', 10),
+                        epic_def.get('deadLine'),
                         epic_def['product'],
                         profile))
                     item_id = item_id + 1
-
+        
 
     def solve(self):
         print(f"Solving {self.title} ...")
