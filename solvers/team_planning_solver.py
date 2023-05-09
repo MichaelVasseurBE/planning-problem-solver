@@ -18,6 +18,11 @@ from optapy import problem_fact, \
 
 from optapy.types import Joiners, HardSoftScore, SolverConfig, Duration
 
+from azure.devops.connection import Connection
+from msrest.authentication import BasicAuthentication
+
+
+
 
 @planning_entity
 class WorkDay:
@@ -304,12 +309,15 @@ def planning_constraints( constraint_factory):
 
 class PlanningProblem:
 
-    def __init__(self, file_path=None):
+    def __init__(self, args):
         self.team_members = []
         self.work_days = []
         self.planning_items = []
-        if file_path is not None:
-            self.load_from_json(file_path)
+
+        if args[1] == 'json' and len(args) == 3:
+            self.load_from_json(args[2])
+        elif args[1] == 'azureDevOps' and len(args) == 5:
+            self.load_from_azure_devops(args[2], args[3], args[4])
         
 
     def generate_work_days(self, iso_start_date, iso_end_date, team_days_off):
@@ -324,6 +332,13 @@ class PlanningProblem:
                 self.work_days.append(WorkDay(workday_id, current_date))
                 workday_id = workday_id + 1
             current_date = current_date + timedelta(days=1)
+
+    def load_from_azure_devops(self, organization_url, personal_access_token, project_name):
+        credentials = BasicAuthentication('', personal_access_token)
+        connection = Connection(base_url=organization_url, creds=credentials)
+        core_client = connection.clients.get_core_client()
+        project = core_client.get_project(project_name)
+        print(project.__dict__)
 
 
     def load_from_json(self, file_path):
@@ -386,7 +401,7 @@ class PlanningProblem:
         return solution
 
 
-problem = PlanningProblem(sys.argv[1])
+problem = PlanningProblem(sys.argv)
 solution = problem.solve() # f"{sys.argv[1]}.solution.csv")
 print(f"Final score : {solution.score.toString() if solution.score is not None else 'N/A'}")
 print(f"CSV OUTPUT")
